@@ -7,17 +7,33 @@ import "bootstrap/dist/css/bootstrap.css";
 
 class AccountContent extends Component {
   state = {
-    user: null
+    user: null,
+    posts: []
   };
 
   componentDidMount() {
+    this.accountPosts();
+  }
+
+  accountPosts = () => {
     const { id } = this.props.match.params;
     Axios.get(`https://makinahgram-api.herokuapp.com/users/${id} `).then(
       res => {
-        this.setState({ user: res.data });
+        this.setState({ user: res.data, posts: res.data.posts });
       }
     );
-  }
+  };
+  handleClick = id => {
+    Axios.delete(`https://makinahgram-api.herokuapp.com/posts/${id}`)
+      .then(res => {
+        this.setState(previousState => ({
+          posts: previousState.posts.filter(p => p.id !== id)
+        }));
+        this.accountPosts();
+      })
+      .catch(Error => console.log(Error));
+  };
+
   render() {
     if (this.state.user) {
       return (
@@ -44,7 +60,7 @@ class AccountContent extends Component {
               // let options = ()
               // date.toLocaleDateString();
               return (
-                <Link to="/Home" className="ul1 text-dark">
+                <div className="ul1 text-dark">
                   <ul>
                     <li>
                       <img src={this.state.user.thumbnail} alt="" />
@@ -55,10 +71,22 @@ class AccountContent extends Component {
 
                     <li className="date pl-5">Created at: {date}</li>
                     <li>
-                      <img className="girl" src={post.image} alt="" />
+                      <Link to="/Home">
+                        <img className="girl" src={post.image} alt="" />
+                      </Link>
+                    </li>
+                    <li>
+                      {" "}
+                      <button
+                        type="button"
+                        className="btn btn-secondary mt-3"
+                        onClick={() => this.handleClick(post.id)}
+                      >
+                        Delete post
+                      </button>
                     </li>
                   </ul>
-                </Link>
+                </div>
               );
             })}
           </div>
